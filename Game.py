@@ -109,3 +109,103 @@ class Block:
         return self.health
 
 
+# Ball Class
+class Ball:
+    def __init__(self, posx, posy, radius, speed, color):
+        self.posx, self.posy = posx, posy
+        self.radius = radius
+        self.speed = speed
+        self.color = color
+        self.xFac, self.yFac = 1, 1
+
+    def display(self):
+        # Menggambar bola utama
+        pygame.draw.circle(screen, self.color, (int(self.posx), int(self.posy)), self.radius)
+        # Menambahkan efek binar mata kecil/kilauan di bola agar terlihat hidup dan lucu
+        pygame.draw.circle(screen, WHITE, (int(self.posx) - 2, int(self.posy) - 2), 2)
+
+    def update(self):
+        self.posx += self.xFac*self.speed
+        self.posy += self.yFac*self.speed
+
+        if self.posx <= 0 or self.posx >= WIDTH:
+            self.xFac *= -1
+
+        if self.posy <= 0:
+            self.yFac *= -1
+
+        if self.posy >= HEIGHT:
+            return True
+
+        return False
+
+    def reset(self):
+        self.posx = WIDTH // 2
+        self.posy = HEIGHT - 150
+        self.xFac, self.yFac = random.choice([-1, 1]), -1
+
+    def hit(self):
+        self.yFac *= -1
+
+    def getRect(self):
+        # Membuat rect imajiner dari lingkaran agar sistem deteksi tabrakan tidak error
+        return pygame.Rect(self.posx - self.radius, self.posy - self.radius, self.radius * 2, self.radius * 2)
+
+
+# Helper Functions
+def collisionChecker(rect, ball):
+    if pygame.Rect.colliderect(rect, ball):
+        return True
+    return False
+
+
+def populateBlocks(blockWidth, blockHeight, horizontalGap, verticalGap):
+    listOfBlocks = []
+    for i in range(0, WIDTH, blockWidth+horizontalGap):
+        for j in range(0, HEIGHT//2, blockHeight+verticalGap):
+            listOfBlocks.append(
+                Block(i, j, blockWidth, blockHeight, 
+                      random.choice([WHITE, BLUE])))
+    return listOfBlocks
+
+
+def gameOver():
+    gameOver = True
+    while gameOver:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    return True
+
+
+# Game Manager
+def main():
+    running = True
+    lives = 3
+    score = 0
+
+    scoreText = font.render("score", True, WHITE)
+    scoreTextRect = scoreText.get_rect()
+    scoreTextRect.center = (40, HEIGHT-20)
+
+    livesText = font.render("Lives", True, WHITE)
+    livesTextRect = livesText.get_rect()
+    livesTextRect.center = (140, HEIGHT-20)
+
+    # Menggunakan warna PINK_LUCU untuk papan pemukul imut Anda
+    striker = Striker(WIDTH // 2 - 50, HEIGHT-50, 100, 20, 12, PINK_LUCU)
+    strikerXFac = 0
+
+    ball = Ball(WIDTH // 2, HEIGHT-150, 8, 6, WHITE)
+
+    blockWidth, blockHeight = 40, 15
+    horizontalGap, verticalGap = 20, 20
+
+    listOfBlocks = populateBlocks(
+        blockWidth, blockHeight, horizontalGap, verticalGap)
+
+    particles = []
+
+    
