@@ -208,4 +208,90 @@ def main():
 
     particles = []
 
-    
+    # Game loop
+    while running:
+        screen.fill(BLACK)
+        screen.blit(scoreText, scoreTextRect)
+        screen.blit(livesText, livesTextRect)
+
+        scoreText = font.render("Score : " + str(score), True, WHITE)
+        livesText = font.render("Lives : " + str(lives), True, WHITE)
+
+        if not listOfBlocks:
+            listOfBlocks = populateBlocks(
+                blockWidth, blockHeight, horizontalGap, verticalGap)
+
+        if lives <= 0:
+            running = gameOver()
+
+            while listOfBlocks:
+                listOfBlocks.pop(0)
+
+            lives = 3
+            score = 0
+            listOfBlocks = populateBlocks(
+                blockWidth, blockHeight, horizontalGap, verticalGap)
+
+        # Event handling
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT:
+                    strikerXFac = -1
+                if event.key == pygame.K_RIGHT:
+                    strikerXFac = 1
+
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
+                    strikerXFac = 0
+
+        # Collision check
+        if(collisionChecker(striker.getRect(), ball.getRect())):
+            ball.hit()
+            
+        for block in listOfBlocks:
+            if(collisionChecker(block.getRect(), ball.getRect())):
+                ball.hit()
+                block.hit()
+
+                center_x = block.posx + (block.width // 2)
+                center_y = block.posy + (block.height // 2)
+                for _ in range(15):
+                    particles.append(Particle(center_x, center_y, block.color))
+
+                if block.getHealth() <= 0:
+                    listOfBlocks.pop(listOfBlocks.index(block))
+                    score += 5
+
+        # Update permainan
+        striker.update(strikerXFac)
+        lifeLost = ball.update()
+
+        if lifeLost:
+            lives -= 1
+            ball.reset()
+            print(lives)
+
+        for particle in particles[:]:
+            particle.update()
+            if particle.lifetime <= 0:
+                particles.remove(particle)
+
+        # Display seluruh objek game
+        striker.display()
+        ball.display()
+
+        for block in listOfBlocks:
+            block.display()
+
+        for particle in particles:
+            particle.display()
+
+        pygame.display.update()
+        clock.tick(FPS)
+
+
+if __name__ == "__main__":
+    main()
+    pygame.quit()
