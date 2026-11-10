@@ -44,3 +44,37 @@ class Particle:
             pygame.draw.circle(screen, self.color, (int(self.posx), int(self.posy)), self.radius)
 
 
+# Striker class (Papan Pemukul Lucu)
+class Striker:
+    def __init__(self, posx, posy, width, height, speed, color):
+        self.posx, self.posy = posx, posy
+        self.width, self.height = width, height
+        self.speed = speed
+        self.color = color
+
+        self.strikerRect = pygame.Rect(
+            self.posx, self.posy, self.width, self.height)
+
+    # Mengubah visual papan jadi membulat (lucu)
+    def display(self):
+        # Menggunakan parameter border_radius agar sudut papan menjadi bulat lonjong comel
+        pygame.draw.rect(screen, self.color, self.strikerRect, border_radius=12)
+        # Menambahkan variasi garis putih kecil di dalam papan agar terlihat berkilau lucu
+        kilau_rect = pygame.Rect(self.posx + 10, self.posy + 4, self.width - 20, 4)
+        pygame.draw.rect(screen, WHITE, kilau_rect, border_radius=2)
+
+    def update(self, xFac):
+        self.posx += self.speed*xFac
+
+        if self.posx <= 0:
+            self.posx = 0
+        elif self.posx+self.width >= WIDTH:
+            self.posx = WIDTH-self.width
+
+        self.strikerRect = pygame.Rect(
+            self.posx, self.posy, self.width, self.height)
+
+    def getRect(self):
+        return self.strikerRect
+
+
